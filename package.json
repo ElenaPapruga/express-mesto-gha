@@ -18,12 +18,7 @@
     "type": "git",
     "url": "https://github.com/ElenaPapruga/express-mesto"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
+
   "browserslist": {
     "production": [
       ">0.2%",
