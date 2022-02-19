@@ -6,7 +6,7 @@
   "dependencies": {
     "express": "^4.17.2",
     "mongoose": "^6.2.1",
-    
+    "react": "^17.0.2"
   },
   "scripts": {
     "dev": "nodemon app.js",
@@ -16,10 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ElenaPapruga/express-mesto-gha"
+    "url": "https://github.com/ElenaPapruga/express-mesto"
   },
-  
-
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
   "browserslist": {
     "production": [
       ">0.2%",
