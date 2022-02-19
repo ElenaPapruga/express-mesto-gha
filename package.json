@@ -1,12 +1,10 @@
 {
   "name": "express-mesto-13",
   "version": "0.1.0",
-  "private": true,
   "main": "app.js",
   "dependencies": {
     "express": "^4.17.2",
-    "mongoose": "^6.2.1",
-    "react": "^17.0.2"
+    "mongoose": "^6.2.1"
   },
   "scripts": {
     "dev": "nodemon app.js",
@@ -14,28 +12,7 @@
     "lint": "npx eslint .",
     "lintFix": "npx eslint . --fix"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ElenaPapruga/express-mesto"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
+  
   "devDependencies": {
     "eslint": "^8.9.0",
     "eslint-config-airbnb-base": "^15.0.0",
