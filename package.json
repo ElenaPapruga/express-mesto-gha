@@ -11,7 +11,7 @@
     "start": "node app.js",
     "lint": "npx eslint .",
     "lintFix": "npx eslint . --fix"
-  },  
+  },
   "devDependencies": {
     "eslint": "^8.9.0",
     "eslint-config-airbnb-base": "^15.0.0",
@@ -19,3 +19,4 @@
     "nodemon": "^2.0.15"
   }
 }
+

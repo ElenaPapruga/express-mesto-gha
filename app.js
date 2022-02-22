@@ -22,6 +22,13 @@ app.use(express.json());
 app.use(users);
 app.use(cards);
 
+// app.post('/signin', login);
+// app.post('/signup', createUser);
+
+// app.use(auth);
+// app.use('/', routerCards);
+// app.use('/', routerUsers);
+
 // Обработки запросов на несуществующий роут
 app.use((req, res) => {
   res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
