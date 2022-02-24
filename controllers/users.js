@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs'); // хеширование пароля
 const User = require('../models/user');
 const BadRequestError = require('../errors/badRequestError');
 const NotFoundError = require('../errors/notFoundError');
@@ -20,6 +21,7 @@ const createUser = (req, res) => {
     res.status(400).send({ message: 'Пароль должен содержать как минимум 8 символов' });
   }
 
+  // Хеширование пароля, соль = 10
   bcrypt.hash(password, 10)
     .then((hash) => userModel.create({
       name, about, avatar, email, password: hash,
@@ -30,8 +32,9 @@ const createUser = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
+        // Пользователь пытается зарегистрироваться по уже существующему в базе email
       } else if (err.code === 11000) {
-        next(new ForbiddenError(`Пользователь c email:${email} уже существует`));
+        next(new ForbiddenError(`Ошибка. Пользователь c email:${email} уже существует`));
       } else {
         next(err);
       }
@@ -51,17 +54,17 @@ const getUser = (req, res) => {
     });
 };
 
-const getAnyUser = (req, res, next) => {
+const getUserById = (req, res, next) => {
   const { id } = req.params;
   return User
     .findById(id)
-    .orFail(new NotFoundError(`Пользователь с id ${id} не найден`))
+    .orFail(new NotFoundError(`Ошибка. Пользователь с указанным id ${id} не найден`))
     .then((user) => {
       res.status(200).send(user);
     })
     .catch((error) => {
       if (error.name === 'NotValid') {
-        next(new BadRequestError('Невалидный id'));
+        next(new BadRequestError('Ошибка. Невалидный id'));
       } else {
         next(error);
       }
@@ -77,7 +80,7 @@ const updateUser = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((error) => {
       if (error.message === 'DocumentNotFoundError') {
-        res.status(404).send({ message: 'У пользователя другой id' });
+        res.status(404).send({ message: 'Ошибка. У пользователя другой id' });
       } else if (error.name === 'ValidationError') {
         res.status(400).send({ message: error.message });
       } else {
@@ -100,11 +103,30 @@ const updateAvatar = (req, res) => {
     });
 };
 
+// Авторизация пользователя
+const signin = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return User.findOneByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET);
+      res
+        .cookie('jwt', token, {
+          maxAge: 3600000 * 24 * 7, // токен (jwt) существует неделю
+          httpOnly: true,
+          sameSite: true,
+        })
+        .send({ data: user.toJSON() });
+    })
+    .catch(next);
+};
+
 module.exports = {
   getUser,
   getUsers,
-  createUser,
   updateUser,
   updateAvatar,
-  getAnyUser,
+  getUserById,
+  createUser,
+  signin,
 };

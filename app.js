@@ -1,39 +1,45 @@
+require('dotenv').config();
 const express = require('express');
-
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+// const routes = require('./routes');
 
-const { PORT = 3000 } = process.env;
+const { createUser, signin } = require('./controllers/users');
 
-const users = require('./routes/users');
-const cards = require('./routes/cards');
+const cardsRouter = require('./routes/cards');
+const usersRouter = require('./routes/users');
+
+// const auth = require('./middlewares/auth');
+const errorHandler = require('./middlewares/errorHandler');
+const NotFoundError = require('./errors/notFoundError');
 
 const app = express();
+const { PORT = 3000 } = process.env;
 
-mongoose.connect('mongodb://localhost:27017/mestodb');
+app.use(bodyParser.json());
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '620aaaa47c708a3a71700cde',
-  };
-  next();
+mongoose.connect('mongodb://localhost:27017/mestodb', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 });
 
 app.use(express.json());
-app.use(users);
-app.use(cards);
+app.use(cookieParser());
+// app.use(routes);
 
-// app.post('/signin', login);
-// app.post('/signup', createUser);
+app.use('/users', usersRouter);
+app.use('/cards', cardsRouter);
 
-// app.use(auth);
-// app.use('/', routerCards);
-// app.use('/', routerUsers);
+app.post('/signin', signin);
+app.post('/signup', createUser);
 
-// Обработки запросов на несуществующий роут
-app.use((req, res) => {
-  res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
+app.use(errorHandler);
+// Обработки запросов на несуществуюСВCDщий роут
+app.use((res, req, next) => {
+  next(new NotFoundError('Ошибка. Страница не существует'));
 });
 
 app.listen(PORT, () => {
-  console.log(`PORT ${PORT}`);
+  console.log(`Сервис запущен. Вы в безопасности. Порт: ${PORT}`);
 });
