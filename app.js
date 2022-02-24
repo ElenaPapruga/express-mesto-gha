@@ -10,7 +10,6 @@ const { createUser, signin } = require('./controllers/users');
 const cardsRouter = require('./routes/cards');
 const usersRouter = require('./routes/users');
 
-// const auth = require('./middlewares/auth');
 const errorHandler = require('./middlewares/errorHandler');
 const NotFoundError = require('./errors/notFoundError');
 
@@ -26,7 +25,6 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 
 app.use(express.json());
 app.use(cookieParser());
-// app.use(routes);
 
 app.use('/users', usersRouter);
 app.use('/cards', cardsRouter);
