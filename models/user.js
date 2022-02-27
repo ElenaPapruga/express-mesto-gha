@@ -4,8 +4,8 @@ const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    minlength: 2,
-    maxlength: 30,
+    minlength: [2, 'Поле name должно содержать минимум 2 сисмвола'],
+    maxlength: [30, 'Поле name должно содержать максимум 30 сисмволов'],
     default: 'Жак-Ив Кусто',
     unique: true,
   },
@@ -17,8 +17,8 @@ const userSchema = new mongoose.Schema({
   about: {
     type: String,
     required: true,
-    minlength: 2,
-    maxlength: 30,
+    minlength: [2, 'Поле name должно содержать минимум 2 сисмвола'],
+    maxlength: [30, 'Поле name должно содержать максимум 30 сисмволов'],
     default: 'Исследователь',
   },
   email: {
@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    minlength: 8,
+    minlength: [8, 'Поле name должно содержать минимум 8 сисмволов'],
     select: false, // API не возвращает хеш пароля
   },
 });

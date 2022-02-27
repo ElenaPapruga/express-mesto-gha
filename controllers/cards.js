@@ -13,7 +13,11 @@ const getCards = (req, res, next) => Card.find()
 // Создание новой карточки
 const createCard = (req, res, next) => {
   const id = req.user._id;
-  const { name, link, likes } = req.body;
+  const {
+    name,
+    link,
+    likes,
+  } = req.body;
 
   Card.create({
     name,
@@ -49,7 +53,11 @@ const deleteCard = (req, res, next) => {
 
 // Лайк на карточку
 const likeCard = (req, res, next) => {
-  Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true },
+  )
     .orFail(new NotFoundError('DocumentNotFoundError'))
     .then((card) => res.send({ data: card }))
     .catch((err) => {
@@ -65,9 +73,13 @@ const likeCard = (req, res, next) => {
 
 // Снятие лайка
 const dislikeCard = (req, res, next) => {
-  Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $pull: { likes: req.user._id } },
+    { new: true },
+  )
     .orFail(new NotFoundError('NotValid'))
-    .then((card) => res.send({ data: card }))
+    .then((likes) => res.send({ data: likes }))
     .catch((err) => {
       console.log(err);
       if (err.name === 'ValidationError') {

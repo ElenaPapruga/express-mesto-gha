@@ -5,51 +5,62 @@ const NotFoundError = require('../errors/notFoundError');
 const ForbiddenError = require('../errors/forbiddenError');
 
 // Метод вызова всех пользователей
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.send({ data: users }))
-    .catch((error) => res.status(500).send({ message: error.message }));
-};
+const getUsers = (req, res, next) => User.find()
+  .then((users) => {
+    res.send(users);
+  })
+  .catch((err) => {
+    next(err);
+  });
 
 // Новый пользователь
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const {
-    name, about, avatar, email, password,
+    name,
+    about,
+    avatar,
+    email,
+    password,
   } = req.body;
-
-  if (password.length < 8) {
-    res.status(400).send({ message: 'Пароль должен содержать как минимум 8 символов' });
-  }
 
   // Хеширование пароля, соль = 10
   bcrypt.hash(password, 10)
-    .then((hash) => userModel.create({
-      name, about, avatar, email, password: hash,
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
     }))
     .then((user) => res.status(201).send({
-      _id: user._id, name: user.name, about: user.about, avatar: user.avatar, email: user.email,
+      _id: user._id,
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      email: user.email,
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
         // Пользователь пытается зарегистрироваться по уже существующему в базе email
       } else if (err.code === 11000) {
-        next(new ForbiddenError(`Ошибка. Пользователь c email:${email} уже существует`));
+        next(new ForbiddenError(`Ошибка. Пользователь c указанным email: ${email} уже существует`));
       } else {
         next(err);
       }
     });
 };
 
-const getUser = (req, res) => {
+const getUser = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(new Error('NotValid'))
     .then((user) => res.send({ data: user }))
-    .catch((error) => {
-      if (error.message === 'NotValid') {
-        res.status(404).send({ message: 'У пользователя другой id' });
+    .catch((err) => {
+      if (err.message === 'NotValid') {
+        res.status(404).send({ message: 'Ошибка. Нет пользователя с указанным id' });
       } else {
-        res.status(500).send({ message: error.message });
+        next(new BadRequestError('Ошибка. Невалидный id'));
+        next(err);
       }
     });
 };
@@ -58,12 +69,12 @@ const getUserById = (req, res, next) => {
   const { id } = req.params;
   return User
     .findById(id)
-    .orFail(new NotFoundError(`Ошибка. Пользователь с указанным id ${id} не найден`))
+    .orFail(new NotFoundError(`Ошибка. Пользователь с указанным id: ${id} не найден`))
     .then((user) => {
       res.status(200).send(user);
     })
-    .catch((error) => {
-      if (error.name === 'NotValid') {
+    .catch((err) => {
+      if (err.name === 'NotValid') {
         next(new BadRequestError('Ошибка. Невалидный id'));
       } else {
         next(error);
@@ -71,39 +82,61 @@ const getUserById = (req, res, next) => {
     });
 };
 
-const updateUser = (req, res) => {
-  const { name, about } = req.body;
+// Обновленный пользователь
+const updateUser = (req, res, next) => {
+  const {
+    name,
+    about,
+  } = req.body;
   const id = req.user._id;
 
-  User.findByIdAndUpdate(id, { name, about }, { new: true, runValidators: true })
-    .orFail(new Error('DocumentNotFoundErrord'))
+  User.findByIdAndUpdate(
+    id,
+    { name, about },
+    {
+      new: true,
+      runValidators: true,
+    },
+  )
+    .orFail(new NotFoundError('DocumentNotFoundErrord'))
     .then((user) => res.send({ data: user }))
-    .catch((error) => {
-      if (error.message === 'DocumentNotFoundError') {
-        res.status(404).send({ message: 'Ошибка. У пользователя другой id' });
-      } else if (error.name === 'ValidationError') {
-        res.status(400).send({ message: error.message });
+    .catch((err) => {
+      if (err.message === 'DocumentNotFoundError') {
+        next(new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
+      } else if (err.name === 'ValidationError') {
+        next(new BadRequestError('Ошибка. Невалидный id'));
       } else {
-        res.status(500).send({ message: error.message });
+        next(err);
       }
     });
 };
 
-const updateAvatar = (req, res) => {
+// Обновленный аватар
+const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   const id = req.user._id;
 
-  User.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(
+    id,
+    { avatar },
+    {
+      new: true, runValidators: true,
+    },
+  )
+    .orFail(new NotFoundError(`Пользователь с указанным id: ${id} не найден`))
     .then((user) => res.send({ data: user }))
-    .catch((error) => {
-      if (error.name === 'ValidationError') {
-        return res.status(400).send({ message: error.message });
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
+      } else if (err.name === 'CastError') {
+        next(new BadRequestError('Невалидный id'));
+      } else {
+        next(err);
       }
-      return res.status(500).send({ message: error.message });
     });
 };
 
-// Авторизация пользователя
+// Авторизация пользователя (login)
 const signin = (req, res, next) => {
   const { email, password } = req.body;
 
@@ -112,7 +145,7 @@ const signin = (req, res, next) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET);
       res
         .cookie('jwt', token, {
-          maxAge: 3600000 * 24 * 7, // токен (jwt) существует неделю
+          maxAge: 3600000 * 24 * 7, // такая кука будет храниться неделю - токен (jwt)
           httpOnly: true,
           sameSite: true,
         })
@@ -122,11 +155,11 @@ const signin = (req, res, next) => {
 };
 
 module.exports = {
+  createUser,
   getUser,
   getUsers,
   updateUser,
   updateAvatar,
   getUserById,
-  createUser,
   signin,
 };
