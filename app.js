@@ -5,11 +5,6 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
 
-const {
-  createUser,
-  signin,
-} = require('./controllers/users');
-
 const cardsRouter = require('./routes/cards');
 const usersRouter = require('./routes/users');
 const adminsRoutes = require('./routes/admins');
@@ -33,10 +28,6 @@ app.use(auth);
 app.use('/cards', cardsRouter);
 app.use('/users', usersRouter);
 app.use('/', adminsRoutes);
-
-// Роут для логина и регистрации
-app.post('/signin', signin);
-app.post('/signup', createUser);
 
 // Обработки запросов на несуществуюСВCDщий роут
 app.use((res, req, next) => {
